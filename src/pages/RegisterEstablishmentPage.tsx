@@ -23,7 +23,7 @@ const priceOptions = [
 ];
 
 const MOCK_IMAGES = [
-  'https://images.pexels.com/photos/1189095/pexels-photo-1189095.jpeg?auto=compress&cs=tinysrgb&w=200',
+  'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=800&q=200',
   'https://images.pexels.com/photos/67468/pexels-photo-67468.jpeg?auto=compress&cs=tinysrgb&w=200',
   'https://images.pexels.com/photos/1268871/pexels-photo-1268871.jpeg?auto=compress&cs=tinysrgb&w=200',
 ];
@@ -93,7 +93,7 @@ export function RegisterEstablishmentPage() {
           <h1 className="text-2xl font-bold text-gray-900">Cadastrar estabelecimento</h1>
         </div>
         <p className="text-gray-500">
-          Preencha as informações do seu espaço para começar a receber clientes pelo Inspot.
+          Preencha as informações do seu espaço para começar a receber clientes pelo InSpot.
         </p>
       </div>
 

@@ -15,8 +15,8 @@ export const establishments: Establishment[] = [
     description:
       'O Bar do Zé é o lugar perfeito para happy hours e rolês descontraídos. Com uma atmosfera aconchegante, cerveja gelada e petiscos irresistíveis, seu grupo vai adorar cada momento. O espaço conta com área coberta e descoberta, perfeito para qualquer clima.',
     images: [
-      'https://images.pexels.com/photos/1189095/pexels-photo-1189095.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/941864/pexels-photo-941864.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?auto=format&fit=crop&w=800&q=800',
+      'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=800&q=800',
       'https://images.pexels.com/photos/696218/pexels-photo-696218.jpeg?auto=compress&cs=tinysrgb&w=800',
       'https://images.pexels.com/photos/274192/pexels-photo-274192.jpeg?auto=compress&cs=tinysrgb&w=800',
     ],

@@ -212,7 +212,7 @@ export function DetailPage() {
             <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl">
               <Tag size={14} className="text-green-600 shrink-0" />
               <p className="text-xs text-green-700 font-medium">
-                Use o cupom Inspot e ganhe até 10% de desconto!
+                Use o cupom InSpot e ganhe até 10% de desconto!
               </p>
             </div>
 

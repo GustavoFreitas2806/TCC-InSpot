@@ -14,7 +14,7 @@ export function Footer() {
                 <MapPin size={16} className="text-white" fill="white" />
               </div>
               <span className="text-xl font-bold text-white tracking-tight">
-                In<span className="text-red-500">spot</span>
+                In<span className="text-red-500">Spot</span>
               </span>
             </button>
             <p className="text-sm leading-relaxed text-gray-500">

@@ -230,7 +230,7 @@ export function HomePage() {
         <div className="mt-16 bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-8 text-white text-center">
           <h2 className="text-2xl font-bold mb-2">Tem um espaço incrível?</h2>
           <p className="text-red-100 mb-6 max-w-lg mx-auto">
-            Cadastre seu estabelecimento no Inspot e alcance milhares de pessoas procurando o lugar perfeito para seus rolês.
+            Cadastre seu estabelecimento no InSpot e alcance milhares de pessoas procurando o lugar perfeito para seus rolês.
           </p>
           <Button
             variant="secondary"

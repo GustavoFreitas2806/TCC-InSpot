@@ -64,7 +64,7 @@ export function RegisterPage() {
               <MapPin size={20} className="text-white" fill="white" />
             </div>
             <span className="text-2xl font-bold text-gray-900 tracking-tight">
-              In<span className="text-red-600">spot</span>
+              In<span className="text-red-600">Spot</span>
             </span>
           </button>
           <h1 className="text-2xl font-bold text-gray-900">Criar conta grátis</h1>

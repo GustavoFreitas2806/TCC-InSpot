@@ -27,7 +27,7 @@ export function Navbar() {
               <MapPin size={16} className="text-white" fill="white" />
             </div>
             <span className="text-xl font-bold text-gray-900 tracking-tight">
-              In<span className="text-red-600">spot</span>
+              In<span className="text-red-600">Spot</span>
             </span>
           </button>
 

@@ -221,7 +221,7 @@ export function ReservationPage() {
               <div className="flex justify-between text-green-600">
                 <span className="flex items-center gap-1">
                   <Tag size={12} />
-                  Desconto Inspot (8%)
+                  Desconto InSpot (8%)
                 </span>
                 <span>− R$ {discount.toFixed(2).replace('.', ',')}</span>
               </div>
