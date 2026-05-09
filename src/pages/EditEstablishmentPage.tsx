@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 import { Button } from '../components/ui/Button';
 import { Input, Select } from '../components/ui/Input';
 import { Modal } from '../components/ui/Modal';
-import { establishments } from '../data/mockData';
+import { supabase } from '../lib/supabase'; // Importação real do banco
 
 const typeOptions = [
   { value: 'bar', label: 'Bar' },
@@ -25,21 +25,27 @@ const priceOptions = [
 ];
 
 export function EditEstablishmentPage() {
-  const { navigate, addToast } = useApp();
-  const mock = establishments[0];
+  const { navigate, addToast, selectedEstablishment } = useApp();
+  
+  // Se não houver nada selecionado (ex: refresh na página), volta para a lista
+  if (!selectedEstablishment) {
+    navigate('my-establishments');
+    return null;
+  }
 
   const [loading, setLoading] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<string[]>(mock.images.slice(0, 3));
+  const [uploadedImages, setUploadedImages] = useState<string[]>(selectedEstablishment.images || []);
+  
   const [form, setForm] = useState({
-    name: mock.name,
-    type: mock.type,
-    capacity: String(mock.capacity),
-    priceRange: mock.priceRange,
-    address: mock.address,
-    neighborhood: mock.neighborhood,
-    city: mock.city,
-    description: mock.description,
+    name: selectedEstablishment.name,
+    type: selectedEstablishment.type,
+    capacity: String(selectedEstablishment.capacity),
+    priceRange: selectedEstablishment.priceRange,
+    address: selectedEstablishment.address,
+    neighborhood: selectedEstablishment.neighborhood,
+    city: selectedEstablishment.city,
+    description: selectedEstablishment.description,
   });
 
   const set = (key: keyof typeof form) => (val: string) =>
@@ -48,15 +54,56 @@ export function EditEstablishmentPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1200));
-    addToast('Alterações salvas com sucesso!', 'success');
-    setLoading(false);
+
+    try {
+      const { error } = await supabase
+        .from('establishments')
+        .update({
+          name: form.name,
+          type: form.type,
+          capacity: parseInt(form.capacity),
+          priceRange: form.priceRange,
+          address: form.address,
+          neighborhood: form.neighborhood,
+          city: form.city,
+          description: form.description,
+          images: uploadedImages
+        })
+        .eq('id', selectedEstablishment.id);
+
+      if (error) {
+        addToast('Erro ao atualizar: ' + error.message, 'error');
+      } else {
+        addToast('Alterações salvas com sucesso!', 'success');
+        navigate('my-establishments');
+      }
+    } catch (err) {
+      addToast('Ocorreu um erro inesperado.', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async () => {
-    await new Promise(r => setTimeout(r, 800));
-    addToast('Estabelecimento excluído.', 'info');
-    navigate('home');
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('establishments')
+        .delete()
+        .eq('id', selectedEstablishment.id);
+
+      if (error) {
+        addToast('Erro ao excluir: ' + error.message, 'error');
+      } else {
+        addToast('Estabelecimento excluído permanentemente.', 'info');
+        navigate('my-establishments');
+      }
+    } catch (err) {
+      addToast('Erro ao tentar excluir.', 'error');
+    } finally {
+      setLoading(false);
+      setDeleteOpen(false);
+    }
   };
 
   const handleMockUpload = () => {
@@ -73,17 +120,17 @@ export function EditEstablishmentPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
       <button
-        onClick={() => navigate('home')}
+        onClick={() => navigate('my-establishments')}
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors"
       >
         <ArrowLeft size={16} />
-        Voltar
+        Voltar para a lista
       </button>
 
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Editar estabelecimento</h1>
-          <p className="text-gray-500 mt-1">Mantenha as informações atualizadas para seus clientes.</p>
+          <h1 className="text-2xl font-bold text-gray-900">Editar: {selectedEstablishment.name}</h1>
+          <p className="text-gray-500 mt-1">Atualize os dados que ficarão visíveis para os clientes.</p>
         </div>
       </div>
 
@@ -92,7 +139,6 @@ export function EditEstablishmentPage() {
           <h2 className="font-semibold text-gray-900 pb-2 border-b border-gray-100">Informações básicas</h2>
           <Input
             label="Nome do estabelecimento"
-            type="text"
             value={form.name}
             onChange={e => set('name')(e.target.value)}
           />
@@ -112,23 +158,12 @@ export function EditEstablishmentPage() {
           <h2 className="font-semibold text-gray-900 pb-2 border-b border-gray-100">Localização</h2>
           <Input
             label="Endereço"
-            type="text"
             value={form.address}
             onChange={e => set('address')(e.target.value)}
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="Bairro"
-              type="text"
-              value={form.neighborhood}
-              onChange={e => set('neighborhood')(e.target.value)}
-            />
-            <Input
-              label="Cidade"
-              type="text"
-              value={form.city}
-              onChange={e => set('city')(e.target.value)}
-            />
+            <Input label="Bairro" value={form.neighborhood} onChange={e => set('neighborhood')(e.target.value)} />
+            <Input label="Cidade" value={form.city} onChange={e => set('city')(e.target.value)} />
           </div>
         </div>
 
@@ -193,16 +228,16 @@ export function EditEstablishmentPage() {
             <AlertTriangle size={24} className="text-red-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 mb-1">Tem certeza?</h3>
+            <h3 className="font-semibold text-gray-900 mb-1">Deseja realmente excluir?</h3>
             <p className="text-sm text-gray-500">
-              Esta ação não pode ser desfeita. Seu estabelecimento será removido permanentemente da plataforma.
+              Esta ação removerá "{selectedEstablishment.name}" permanentemente do InSpot.
             </p>
           </div>
           <div className="flex gap-3 pt-2">
             <Button variant="ghost" fullWidth onClick={() => setDeleteOpen(false)}>
               Cancelar
             </Button>
-            <Button variant="primary" fullWidth onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+            <Button variant="primary" fullWidth onClick={handleDelete} className="bg-red-600 hover:bg-red-700" loading={loading}>
               Sim, excluir
             </Button>
           </div>

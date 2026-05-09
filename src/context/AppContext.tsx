@@ -7,6 +7,25 @@ interface Toast {
   type: 'success' | 'error' | 'info';
 }
 
+export interface ReservationRecord {
+  id: string;
+  establishmentId: string;
+  establishmentName: string;
+  establishmentImage: string;
+  establishmentType: string;
+  establishmentNeighborhood: string;
+  establishmentCity: string;
+  date: string;
+  time: string;
+  people: number;
+  subtotal: number;
+  discount: number;
+  total: number;
+  couponCode: string;
+  status: 'confirmed' | 'pending' | 'cancelled';
+  createdAt: string;
+}
+
 interface AppContextValue {
   currentPage: Page;
   navigate: (page: Page, params?: Record<string, string>) => void;
@@ -20,6 +39,10 @@ interface AppContextValue {
   toasts: Toast[];
   addToast: (message: string, type?: Toast['type']) => void;
   removeToast: (id: string) => void;
+  reservations: ReservationRecord[];
+  addReservation: (r: ReservationRecord) => void;
+  userPoints: number;
+  addPoints: (pts: number) => void;
 }
 
 const defaultFilters: SearchFilters = {
@@ -41,6 +64,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedEstablishment, setSelectedEstablishment] = useState<Establishment | null>(null);
   const [filters, setFiltersState] = useState<SearchFilters>(defaultFilters);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [reservations, setReservations] = useState<ReservationRecord[]>([]);
+  const [userPoints, setUserPoints] = useState(0);
 
   const navigate = useCallback((page: Page, params: Record<string, string> = {}) => {
     setCurrentPage(page);
@@ -64,6 +89,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
+  const addReservation = useCallback((r: ReservationRecord) => {
+    setReservations(prev => [r, ...prev]);
+  }, []);
+
+  const addPoints = useCallback((pts: number) => {
+    setUserPoints(prev => prev + pts);
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
@@ -79,6 +112,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         toasts,
         addToast,
         removeToast,
+        reservations,
+        addReservation,
+        userPoints,
+        addPoints,
       }}
     >
       {children}

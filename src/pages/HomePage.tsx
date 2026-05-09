@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Search, MapPin, Calendar, Users, ChevronRight, Sparkles } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { establishments } from '../data/mockData';
+import { establishments as mockEstablishments } from '../data/mockData'; // Renomeado para clareza
 import { EstablishmentCard } from '../components/establishment/EstablishmentCard';
 import { FiltersSidebar, FiltersMobileButton } from '../components/establishment/Filters';
 import { SkeletonCard } from '../components/ui/SkeletonCard';
 import { Button } from '../components/ui/Button';
+import { supabase } from '../lib/supabase'; // Importando a conexão real
 import type { Establishment } from '../types';
 
 const categoryQuickFilters = [
@@ -23,21 +24,48 @@ const categoryQuickFilters = [
 export function HomePage() {
   const { filters, setFilters, navigate } = useApp();
   const [loading, setLoading] = useState(true);
+  const [dbEstablishments, setDbEstablishments] = useState<Establishment[]>([]); // Estado para dados do Supabase
+  
   const [searchLocation, setSearchLocation] = useState(filters.location);
   const [searchDate, setSearchDate] = useState(filters.date);
   const [searchPeople, setSearchPeople] = useState(filters.people);
 
+  // Busca dados reais do Supabase ao carregar a página
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
+    async function fetchFromSupabase() {
+      try {
+        const { data, error } = await supabase
+          .from('establishments')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          setDbEstablishments(data as Establishment[]);
+        }
+      } catch (err) {
+        console.error("Erro ao conectar com Supabase:", err);
+      } finally {
+        // Pequeno delay para o esqueleto de loading aparecer (opcional para UX)
+        setTimeout(() => setLoading(false), 800);
+      }
+    }
+
+    fetchFromSupabase();
   }, []);
 
+  // Une os dados do Banco de Dados com os Mocks fixos
+  const allEstablishments = useMemo(() => {
+    return [...dbEstablishments, ...mockEstablishments];
+  }, [dbEstablishments]);
+
+  // Lógica de filtragem aplicada sobre a lista combinada
   const filtered = useMemo(() => {
-    let list: Establishment[] = [...establishments];
+    let list: Establishment[] = [...allEstablishments];
 
     if (filters.type) list = list.filter(e => e.type === filters.type);
     if (filters.priceRange) list = list.filter(e => e.priceRange === filters.priceRange);
     if (filters.minRating > 0) list = list.filter(e => e.rating >= filters.minRating);
+    
     if (filters.location) {
       const q = filters.location.toLowerCase();
       list = list.filter(e =>
@@ -47,6 +75,7 @@ export function HomePage() {
       );
     }
 
+    // Ordenação
     if (filters.sortBy === 'rating') list.sort((a, b) => b.rating - a.rating);
     else if (filters.sortBy === 'price-asc') {
       const order = ['$', '$$', '$$$', '$$$$'];
@@ -55,17 +84,19 @@ export function HomePage() {
       const order = ['$', '$$', '$$$', '$$$$'];
       list.sort((a, b) => order.indexOf(b.priceRange) - order.indexOf(a.priceRange));
     } else {
+      // Destaques primeiro
       list.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
     }
 
     return list;
-  }, [filters]);
+  }, [filters, allEstablishments]);
 
   const handleSearch = () => {
     setFilters({ location: searchLocation, date: searchDate, people: searchPeople });
   };
 
-  const featured = establishments.filter(e => e.isFeatured);
+  // Pega os destaques da lista completa
+  const featured = allEstablishments.filter(e => e.isFeatured).slice(0, 3);
 
   return (
     <div>
@@ -142,7 +173,7 @@ export function HomePage() {
             {categoryQuickFilters.map(cat => (
               <button
                 key={cat.value}
-                onClick={() => setFilters({ type: cat.value as typeof filters.type })}
+                onClick={() => setFilters({ type: cat.value as any })}
                 className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
                   filters.type === cat.value
                     ? 'bg-red-600 text-white border-red-600'
@@ -165,9 +196,6 @@ export function HomePage() {
                 <h2 className="text-xl font-bold text-gray-900">Destaques da semana</h2>
                 <p className="text-sm text-gray-500 mt-0.5">Os lugares mais amados pelos usuários</p>
               </div>
-              <button className="flex items-center gap-1 text-sm font-medium text-red-600 hover:text-red-700 transition-colors">
-                Ver todos <ChevronRight size={16} />
-              </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {loading
@@ -205,13 +233,8 @@ export function HomePage() {
               </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-20">
-                <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Search size={28} className="text-red-400" />
-                </div>
+                <Search size={28} className="text-red-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">Nenhum espaço encontrado</h3>
-                <p className="text-gray-500 mb-5 max-w-sm mx-auto">
-                  Tente ajustar os filtros ou buscar em outra localização.
-                </p>
                 <Button variant="outline" onClick={() => setFilters({ type: '', priceRange: '', minRating: 0, location: '' })}>
                   Limpar filtros
                 </Button>
@@ -224,21 +247,6 @@ export function HomePage() {
               </div>
             )}
           </div>
-        </div>
-
-        {/* CTA banner */}
-        <div className="mt-16 bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-8 text-white text-center">
-          <h2 className="text-2xl font-bold mb-2">Tem um espaço incrível?</h2>
-          <p className="text-red-100 mb-6 max-w-lg mx-auto">
-            Cadastre seu estabelecimento no InSpot e alcance milhares de pessoas procurando o lugar perfeito para seus rolês.
-          </p>
-          <Button
-            variant="secondary"
-            size="lg"
-            onClick={() => navigate('register-establishment')}
-          >
-            Cadastrar meu espaço
-          </Button>
         </div>
       </div>
     </div>

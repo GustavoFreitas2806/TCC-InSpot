@@ -26,7 +26,7 @@ export function LoginPage() {
     if (!validate()) return;
     setLoading(true);
     await new Promise(r => setTimeout(r, 1000));
-    setUser({ id: '1', name: 'João Silva', email });
+    setUser({ id: crypto.randomUUID(), name: 'João Silva', email });
     addToast('Login realizado com sucesso! Bem-vindo de volta.', 'success');
     navigate('home');
     setLoading(false);

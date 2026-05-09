@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, MapPin, Users, Calendar, Clock, Tag, CheckCircle, Copy } from 'lucide-react';
+import { ArrowLeft, MapPin, Users, Calendar, Clock, Tag, CheckCircle, Copy, Star } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Button } from '../components/ui/Button';
 import { typeLabels, priceRangeLabels } from '../data/mockData';
@@ -16,8 +16,10 @@ const pricePerPerson: Record<string, number> = {
   '$$$$': 280,
 };
 
+const POINTS_PER_RESERVATION = 100;
+
 export function ReservationPage() {
-  const { selectedEstablishment, navigate, addToast, filters } = useApp();
+  const { selectedEstablishment, navigate, addToast, filters, addReservation, addPoints, user } = useApp();
   const [date, setDate] = useState(filters.date || '');
   const [time, setTime] = useState('');
   const [people, setPeople] = useState(filters.people || 2);
@@ -39,11 +41,33 @@ export function ReservationPage() {
   const handleConfirm = async (ev: React.FormEvent) => {
     ev.preventDefault();
     if (!date || !time) {
-      addToast('Selecione data e horário para continuar', 'error');
+      addToast('Selecione data e horario para continuar', 'error');
       return;
     }
     setLoading(true);
     await new Promise(r => setTimeout(r, 1500));
+
+    const newReservation = {
+      id: Math.random().toString(36).slice(2),
+      establishmentId: e.id,
+      establishmentName: e.name,
+      establishmentImage: e.images[0],
+      establishmentType: e.type,
+      establishmentNeighborhood: e.neighborhood,
+      establishmentCity: e.city,
+      date,
+      time,
+      people,
+      subtotal,
+      discount,
+      total,
+      couponCode,
+      status: 'confirmed' as const,
+      createdAt: new Date().toISOString(),
+    };
+
+    addReservation(newReservation);
+    addPoints(POINTS_PER_RESERVATION);
     setSuccess(true);
     setLoading(false);
   };
@@ -62,6 +86,17 @@ export function ReservationPage() {
             </p>
           </div>
 
+          {/* Points earned */}
+          <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
+              <Star size={18} className="text-amber-500 fill-amber-500" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-bold text-amber-800">+{POINTS_PER_RESERVATION} pontos ganhos!</p>
+              <p className="text-xs text-amber-600">Acumule pontos e resgate recompensas exclusivas.</p>
+            </div>
+          </div>
+
           <div className="bg-gray-50 rounded-xl p-4 text-left space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-500">Estabelecimento</span>
@@ -72,7 +107,7 @@ export function ReservationPage() {
               <span className="font-medium">{new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Horário</span>
+              <span className="text-gray-500">Horario</span>
               <span className="font-medium">{time}</span>
             </div>
             <div className="flex justify-between">
@@ -86,7 +121,7 @@ export function ReservationPage() {
           </div>
 
           <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-100 rounded-xl p-4">
-            <p className="text-xs text-gray-500 mb-2">Seu cupom exclusivo Inspot</p>
+            <p className="text-xs text-gray-500 mb-2">Seu cupom exclusivo InSpot</p>
             <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-dashed border-red-300">
               <span className="font-mono font-bold text-red-600 text-sm">{couponCode}</span>
               <button
@@ -97,12 +132,26 @@ export function ReservationPage() {
                 Copiar
               </button>
             </div>
-            <p className="text-xs text-gray-400 mt-2">Apresente este código na hora do pagamento para receber 8% de desconto.</p>
+            <p className="text-xs text-gray-400 mt-2">Apresente este codigo na hora do pagamento para receber 8% de desconto.</p>
           </div>
 
-          <Button fullWidth size="lg" onClick={() => navigate('home')}>
-            Explorar mais espaços
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button variant="outline" fullWidth onClick={() => navigate('my-reservations')}>
+              Ver minhas reservas
+            </Button>
+            <Button fullWidth onClick={() => navigate('home')}>
+              Explorar mais espacos
+            </Button>
+          </div>
+
+          {user && (
+            <button
+              onClick={() => navigate('points')}
+              className="text-sm text-red-600 font-medium hover:text-red-700 transition-colors"
+            >
+              Ver meus pontos e recompensas
+            </button>
+          )}
         </div>
       </div>
     );
@@ -115,7 +164,7 @@ export function ReservationPage() {
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors"
       >
         <ArrowLeft size={16} />
-        Voltar para o espaço
+        Voltar para o espaco
       </button>
 
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Finalizar reserva</h1>
@@ -163,7 +212,7 @@ export function ReservationPage() {
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
                 <Clock size={14} className="text-red-500" />
-                Horário
+                Horario
               </label>
               <div className="flex flex-wrap gap-2">
                 {timeSlots.map(slot => (
@@ -186,7 +235,7 @@ export function ReservationPage() {
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
                 <Users size={14} className="text-red-500" />
-                Número de pessoas
+                Numero de pessoas
               </label>
               <div className="flex items-center gap-3">
                 <button
@@ -204,18 +253,26 @@ export function ReservationPage() {
                 >
                   +
                 </button>
-                <span className="text-sm text-gray-400">máx. {e.capacity}</span>
+                <span className="text-sm text-gray-400">max. {e.capacity}</span>
               </div>
             </div>
           </div>
 
+          {/* Points preview */}
+          <div className="flex items-center gap-3 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+            <Star size={16} className="text-amber-500 fill-amber-400 shrink-0" />
+            <p className="text-sm text-amber-800">
+              Voce ganhara <strong>+{POINTS_PER_RESERVATION} pontos</strong> ao confirmar esta reserva!
+            </p>
+          </div>
+
           {/* Price summary */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
-            <h2 className="font-semibold text-gray-900 pb-2 border-b border-gray-100">Resumo de preço</h2>
+            <h2 className="font-semibold text-gray-900 pb-2 border-b border-gray-100">Resumo de preco</h2>
 
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-gray-600">
-                <span>R$ {basePrice.toFixed(2).replace('.', ',')} × {people} pessoas</span>
+                <span>R$ {basePrice.toFixed(2).replace('.', ',')} x {people} pessoas</span>
                 <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
               </div>
               <div className="flex justify-between text-green-600">
@@ -223,7 +280,7 @@ export function ReservationPage() {
                   <Tag size={12} />
                   Desconto InSpot (8%)
                 </span>
-                <span>− R$ {discount.toFixed(2).replace('.', ',')}</span>
+                <span>- R$ {discount.toFixed(2).replace('.', ',')}</span>
               </div>
               <div className="flex justify-between font-bold text-gray-900 text-base border-t border-gray-100 pt-2 mt-2">
                 <span>Total estimado</span>
@@ -232,7 +289,7 @@ export function ReservationPage() {
             </div>
 
             <p className="text-xs text-gray-400">
-              * Valores são estimativas. O pagamento final é feito diretamente no estabelecimento.
+              * Valores sao estimativas. O pagamento final e feito diretamente no estabelecimento.
             </p>
           </div>
 

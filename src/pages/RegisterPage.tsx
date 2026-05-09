@@ -31,7 +31,7 @@ export function RegisterPage() {
     if (!validate()) return;
     setLoading(true);
     await new Promise(r => setTimeout(r, 1200));
-    setUser({ id: '1', name: form.name, email: form.email });
+    setUser({ id: crypto.randomUUID(), name: form.name, email: form.email });
     addToast('Conta criada com sucesso! Bem-vindo ao Inspot!', 'success');
     navigate('home');
     setLoading(false);

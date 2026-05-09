@@ -66,7 +66,14 @@ export type Page =
   | 'detail'
   | 'edit-establishment'
   | 'reservation'
-  | 'reservation-success';
+  | 'reservation-success'
+  | 'profile'
+  | 'my-reservations'
+  | 'calendar'
+  | 'points'
+  | 'promotions'
+  | 'my-establishments'
+  | 'my-reservations';
 
 export interface SearchFilters {
   location: string;

@@ -99,9 +99,9 @@ export function DetailPage() {
             <div className="bg-gray-50 rounded-xl p-4 text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Star size={16} className="text-amber-400 fill-amber-400" />
-                <span className="font-bold text-gray-900">{e.rating.toFixed(1)}</span>
+                <span className="font-bold text-gray-900">{(e.rating || 0).toFixed(1)}</span>
               </div>
-              <p className="text-xs text-gray-500">{e.reviewCount} avaliações</p>
+              <p className="text-xs text-gray-500">{e.reviewCount || 0} avaliações</p>
             </div>
             <div className="bg-gray-50 rounded-xl p-4 text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
@@ -138,20 +138,20 @@ export function DetailPage() {
             </div>
           </div>
 
-          {/* Reviews */}
+          {/* Reviews - ALTERADO PARA SEGURANÇA */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Avaliações</h2>
-              <StarRating rating={e.rating} showNumber reviewCount={e.reviewCount} />
+              <StarRating rating={e.rating || 0} showNumber reviewCount={e.reviewCount || 0} />
             </div>
-            {e.reviews.length === 0 ? (
+            {(e.reviews || []).length === 0 ? (
               <div className="text-center py-8 bg-gray-50 rounded-xl">
                 <Star size={32} className="text-gray-300 mx-auto mb-2" />
                 <p className="text-gray-500 text-sm">Ainda não há avaliações</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {e.reviews.map(r => (
+                {(e.reviews || []).map(r => (
                   <ReviewCard key={r.id} review={r} />
                 ))}
               </div>
@@ -168,7 +168,7 @@ export function DetailPage() {
                 <span className="text-2xl font-bold text-gray-900">{e.priceRange}</span>
                 <span className="text-sm text-gray-500">por pessoa</span>
               </div>
-              <StarRating rating={e.rating} showNumber reviewCount={e.reviewCount} size={13} />
+              <StarRating rating={e.rating || 0} showNumber reviewCount={e.reviewCount || 0} size={13} />
             </div>
 
             <div className="border-t border-gray-100 pt-4 space-y-4">
