@@ -1,0 +1,246 @@
+import { useState } from 'react';
+import { ArrowLeft, MapPin, Users, Calendar, Clock, Tag, CheckCircle, Copy } from 'lucide-react';
+import { useApp } from '../context/AppContext';
+import { Button } from '../components/ui/Button';
+import { typeLabels, priceRangeLabels } from '../data/mockData';
+
+const timeSlots = [
+  '12:00', '12:30', '13:00', '13:30', '14:00',
+  '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00',
+];
+
+const pricePerPerson: Record<string, number> = {
+  '$': 40,
+  '$$': 80,
+  '$$$': 150,
+  '$$$$': 280,
+};
+
+export function ReservationPage() {
+  const { selectedEstablishment, navigate, addToast, filters } = useApp();
+  const [date, setDate] = useState(filters.date || '');
+  const [time, setTime] = useState('');
+  const [people, setPeople] = useState(filters.people || 2);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [couponCode] = useState(() => `INSPOT-${Math.random().toString(36).slice(2, 8).toUpperCase()}`);
+
+  if (!selectedEstablishment) {
+    navigate('home');
+    return null;
+  }
+
+  const e = selectedEstablishment;
+  const basePrice = pricePerPerson[e.priceRange] ?? 80;
+  const subtotal = basePrice * people;
+  const discount = Math.round(subtotal * 0.08);
+  const total = subtotal - discount;
+
+  const handleConfirm = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    if (!date || !time) {
+      addToast('Selecione data e horário para continuar', 'error');
+      return;
+    }
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 1500));
+    setSuccess(true);
+    setLoading(false);
+  };
+
+  if (success) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-16 text-center">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-lg p-8 space-y-6">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+            <CheckCircle size={40} className="text-green-500" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Reserva confirmada!</h1>
+            <p className="text-gray-500">
+              Sua reserva em <strong>{e.name}</strong> foi realizada com sucesso.
+            </p>
+          </div>
+
+          <div className="bg-gray-50 rounded-xl p-4 text-left space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Estabelecimento</span>
+              <span className="font-medium">{e.name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Data</span>
+              <span className="font-medium">{new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Horário</span>
+              <span className="font-medium">{time}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Pessoas</span>
+              <span className="font-medium">{people}</span>
+            </div>
+            <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
+              <span className="font-semibold text-gray-800">Total com desconto</span>
+              <span className="font-bold text-green-600">R$ {total.toFixed(2).replace('.', ',')}</span>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-100 rounded-xl p-4">
+            <p className="text-xs text-gray-500 mb-2">Seu cupom exclusivo Inspot</p>
+            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-dashed border-red-300">
+              <span className="font-mono font-bold text-red-600 text-sm">{couponCode}</span>
+              <button
+                onClick={() => addToast('Cupom copiado!', 'success')}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <Copy size={12} />
+                Copiar
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">Apresente este código na hora do pagamento para receber 8% de desconto.</p>
+          </div>
+
+          <Button fullWidth size="lg" onClick={() => navigate('home')}>
+            Explorar mais espaços
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
+      <button
+        onClick={() => navigate('detail')}
+        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors"
+      >
+        <ArrowLeft size={16} />
+        Voltar para o espaço
+      </button>
+
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Finalizar reserva</h1>
+
+      <div className="space-y-5">
+        {/* Establishment mini card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex gap-4">
+          <img
+            src={e.images[0]}
+            alt={e.name}
+            className="w-20 h-20 rounded-xl object-cover shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+              {typeLabels[e.type] || e.type}
+            </span>
+            <h3 className="font-semibold text-gray-900 mt-1">{e.name}</h3>
+            <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+              <MapPin size={12} />
+              {e.neighborhood}, {e.city}
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">{priceRangeLabels[e.priceRange]}</p>
+          </div>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleConfirm} className="space-y-5">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5">
+            <h2 className="font-semibold text-gray-900 pb-2 border-b border-gray-100">Detalhes da reserva</h2>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                <Calendar size={14} className="text-red-500" />
+                Data do evento
+              </label>
+              <input
+                type="date"
+                value={date}
+                onChange={ev => setDate(ev.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                <Clock size={14} className="text-red-500" />
+                Horário
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {timeSlots.map(slot => (
+                  <button
+                    key={slot}
+                    type="button"
+                    onClick={() => setTime(slot)}
+                    className={`px-3 py-1.5 rounded-xl text-sm border transition-all ${
+                      time === slot
+                        ? 'bg-red-600 text-white border-red-600'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-red-300'
+                    }`}
+                  >
+                    {slot}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                <Users size={14} className="text-red-500" />
+                Número de pessoas
+              </label>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPeople(p => Math.max(1, p - 1))}
+                  className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors font-medium"
+                >
+                  −
+                </button>
+                <span className="font-semibold text-gray-900 w-8 text-center text-lg">{people}</span>
+                <button
+                  type="button"
+                  onClick={() => setPeople(p => Math.min(e.capacity, p + 1))}
+                  className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors font-medium"
+                >
+                  +
+                </button>
+                <span className="text-sm text-gray-400">máx. {e.capacity}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Price summary */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
+            <h2 className="font-semibold text-gray-900 pb-2 border-b border-gray-100">Resumo de preço</h2>
+
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between text-gray-600">
+                <span>R$ {basePrice.toFixed(2).replace('.', ',')} × {people} pessoas</span>
+                <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
+              </div>
+              <div className="flex justify-between text-green-600">
+                <span className="flex items-center gap-1">
+                  <Tag size={12} />
+                  Desconto Inspot (8%)
+                </span>
+                <span>− R$ {discount.toFixed(2).replace('.', ',')}</span>
+              </div>
+              <div className="flex justify-between font-bold text-gray-900 text-base border-t border-gray-100 pt-2 mt-2">
+                <span>Total estimado</span>
+                <span>R$ {total.toFixed(2).replace('.', ',')}</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-400">
+              * Valores são estimativas. O pagamento final é feito diretamente no estabelecimento.
+            </p>
+          </div>
+
+          <Button type="submit" fullWidth size="lg" loading={loading}>
+            Confirmar reserva
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+}
