@@ -22,6 +22,7 @@ export interface ReservationRecord {
   discount: number;
   total: number;
   couponCode: string;
+  duration?: string;
   status: 'confirmed' | 'pending' | 'cancelled';
   createdAt: string;
 }

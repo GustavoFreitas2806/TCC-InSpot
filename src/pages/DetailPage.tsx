@@ -12,8 +12,6 @@ import { typeLabels, priceRangeLabels } from '../data/mockData';
 export function DetailPage() {
   const { selectedEstablishment, navigate, addToast } = useApp();
   const [liked, setLiked] = useState(false);
-  const [date, setDate] = useState('');
-  const [people, setPeople] = useState(2);
 
   if (!selectedEstablishment) {
     navigate('home');
@@ -23,10 +21,6 @@ export function DetailPage() {
   const e = selectedEstablishment;
 
   const handleReserve = () => {
-    if (!date) {
-      addToast('Selecione uma data para continuar', 'error');
-      return;
-    }
     navigate('reservation');
   };
 
@@ -171,43 +165,11 @@ export function DetailPage() {
               <StarRating rating={e.rating || 0} showNumber reviewCount={e.reviewCount || 0} size={13} />
             </div>
 
-            <div className="border-t border-gray-100 pt-4 space-y-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-gray-700">Data do evento</label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={e => setDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-gray-700">Número de pessoas</label>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setPeople(p => Math.max(1, p - 1))}
-                    className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    −
-                  </button>
-                  <span className="font-semibold text-gray-900 w-8 text-center">{people}</span>
-                  <button
-                    type="button"
-                    onClick={() => setPeople(p => Math.min(e.capacity, p + 1))}
-                    className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
+            <div className="border-t border-gray-100 pt-4">
+              <Button fullWidth size="lg" onClick={handleReserve}>
+                Reservar agora
+              </Button>
             </div>
-
-            <Button fullWidth size="lg" onClick={handleReserve}>
-              Reservar agora
-            </Button>
 
             <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl">
               <Tag size={14} className="text-green-600 shrink-0" />
